@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace ManualResetEventExample
 {
@@ -32,8 +31,10 @@ namespace ManualResetEventExample
 
             while (!_jobs.IsCompleted)
             {
-                Task.Run(() =>
+                // Refacor below code based on https://github.com/davidfowl/AspNetCoreDiagnosticScenarios/blob/master/AsyncGuidance.md#avoid-using-taskrun-for-long-running-work-that-blocks-the-thread
+                var thread = new Thread(() =>
                 {
+
                     Job job = null;
                     _canExcecute.Wait();
                     _canExcecute.Reset();
@@ -45,7 +46,27 @@ namespace ManualResetEventExample
 
                     job?.ExcecuteJob();
 
-                });
+                })
+                {
+                    // This is important as it allows the process to exit while this thread is running
+                    IsBackground = true
+                };
+                thread.Start();
+
+                //Task.Run(() =>
+                //{
+                //    Job job = null;
+                //    _canExcecute.Wait();
+                //    _canExcecute.Reset();
+                //    try
+                //    {
+                //        job = _jobs.Take();
+                //    }
+                //    catch (InvalidOperationException) { }
+
+                //    job?.ExcecuteJob();
+
+                //});
             }
 
 
