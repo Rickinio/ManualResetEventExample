@@ -9,17 +9,17 @@ namespace ManualResetEventExample
     {
         static void Main(string[] args)
         {
-            ManualResetEventSlim _canExcecute = new ManualResetEventSlim(true);
+            ManualResetEventSlim _canExecute = new ManualResetEventSlim(true);
             ConcurrentQueue<Job> _queue = new ConcurrentQueue<Job>();
             BlockingCollection<Job> _jobs = new BlockingCollection<Job>(_queue);
 
-            var job1 = new Job() { ExcecuteJob = () => { Thread.Sleep(3000); Console.WriteLine("Line 1"); _canExcecute.Set(); } };
-            var job2 = new Job() { ExcecuteJob = () => { Thread.Sleep(1000); Console.WriteLine("Line 2"); _canExcecute.Set(); } };
-            var job3 = new Job() { ExcecuteJob = () => { Thread.Sleep(2000); Console.WriteLine("Line 3"); _canExcecute.Set(); } };
-            var job4 = new Job() { ExcecuteJob = () => { Thread.Sleep(1000); Console.WriteLine("Line 4"); _canExcecute.Set(); } };
-            var job5 = new Job() { ExcecuteJob = () => { Thread.Sleep(1500); Console.WriteLine("Line 5"); _canExcecute.Set(); } };
-            var job6 = new Job() { ExcecuteJob = () => { Thread.Sleep(3000); Console.WriteLine("Line 6"); _canExcecute.Set(); } };
-            var job7 = new Job() { ExcecuteJob = () => { Thread.Sleep(2000); Console.WriteLine("Line 7"); _canExcecute.Set(); } };
+            var job1 = new Job() { ExecuteJob = () => { Thread.Sleep(3000); Console.WriteLine("Line 1"); _canExecute.Set(); } };
+            var job2 = new Job() { ExecuteJob = () => { Thread.Sleep(1000); Console.WriteLine("Line 2"); _canExecute.Set(); } };
+            var job3 = new Job() { ExecuteJob = () => { Thread.Sleep(2000); Console.WriteLine("Line 3"); _canExecute.Set(); } };
+            var job4 = new Job() { ExecuteJob = () => { Thread.Sleep(1000); Console.WriteLine("Line 4"); _canExecute.Set(); } };
+            var job5 = new Job() { ExecuteJob = () => { Thread.Sleep(1500); Console.WriteLine("Line 5"); _canExecute.Set(); } };
+            var job6 = new Job() { ExecuteJob = () => { Thread.Sleep(3000); Console.WriteLine("Line 6"); _canExecute.Set(); } };
+            var job7 = new Job() { ExecuteJob = () => { Thread.Sleep(2000); Console.WriteLine("Line 7"); _canExecute.Set(); } };
 
             _jobs.Add(job1);
             _jobs.Add(job2);
@@ -29,24 +29,25 @@ namespace ManualResetEventExample
             _jobs.Add(job6);
             _jobs.Add(job7);
 
-
-            while (!_jobs.IsCompleted)
+            Task.Run(() =>
             {
-                Task.Run(() =>
+                while (!_jobs.IsCompleted)
                 {
-                    Job job = null;
-                    _canExcecute.Wait();
-                    _canExcecute.Reset();
-                    try
+                    Task.Run(() =>
                     {
-                        job = _jobs.Take();
-                    }
-                    catch (InvalidOperationException) { }
+                        Job job = null;
+                        _canExecute.Wait();
+                        _canExecute.Reset();
+                        try
+                        {
+                            job = _jobs.Take();
+                        }
+                        catch (InvalidOperationException) { }
 
-                    job?.ExcecuteJob();
-
-                });
-            }
+                        job?.ExecuteJob();
+                    });
+                }
+            });
 
 
             Console.ReadKey();
@@ -55,6 +56,6 @@ namespace ManualResetEventExample
 
     public class Job
     {
-        public Action ExcecuteJob { get; set; }
+        public Action ExecuteJob { get; set; }
     }
 }
