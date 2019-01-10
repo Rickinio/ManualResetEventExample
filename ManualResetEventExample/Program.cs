@@ -63,14 +63,16 @@ namespace ManualResetEventExample
                         job?.Execute();
                     })
                     {
-                        // This is important as it allows the process to exit while this thread is running
+                        // This is important as it allows the process to exit
+                        // while this thread is running
                         IsBackground = true
                     };
                     innerThread.Start();
                 }
             })
             {
-                // This is important as it allows the process to exit while this thread is running
+                // This is important as it allows the process to exit
+                // while this thread is running
                 IsBackground = true
             };
             thread.Start();
