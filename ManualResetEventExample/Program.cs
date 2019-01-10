@@ -75,8 +75,6 @@ namespace ManualResetEventExample
             };
             thread.Start();
            
-
-
             Console.ReadKey();
         }
     }
