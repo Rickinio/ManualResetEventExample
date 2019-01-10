@@ -10,6 +10,8 @@ namespace ManualResetEventExample
         
         static void Main(string[] args)
         {
+            // Set Manual Reset Event to true cause i want to immediately 
+            // start executing the jobs, i don't want the tread to wait
             ManualResetEventSlim _canExecute = new ManualResetEventSlim(true);
             ConcurrentQueue<Job> _queue = new ConcurrentQueue<Job>();
             BlockingCollection<Job> _jobs = new BlockingCollection<Job>(_queue);
@@ -45,7 +47,11 @@ namespace ManualResetEventExample
                     Task.Run(() =>
                     {
                         Job job = null;
+                        // Now i wait for the ManualResetEvent to be set to True
                         _canExecute.Wait();
+                        //and immediatly Reset it so that the Thread will pause
+                        // on the above line and again wait for the ManualResetEvent
+                        // to be set to true
                         _canExecute.Reset();
                         try
                         {
