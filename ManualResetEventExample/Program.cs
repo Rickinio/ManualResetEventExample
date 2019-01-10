@@ -7,19 +7,28 @@ namespace ManualResetEventExample
 {
     class Program
     {
+        
         static void Main(string[] args)
         {
             ManualResetEventSlim _canExecute = new ManualResetEventSlim(true);
             ConcurrentQueue<Job> _queue = new ConcurrentQueue<Job>();
             BlockingCollection<Job> _jobs = new BlockingCollection<Job>(_queue);
 
-            var job1 = new Job() { ExecuteJob = () => { Thread.Sleep(3000); Console.WriteLine("Line 1"); _canExecute.Set(); } };
-            var job2 = new Job() { ExecuteJob = () => { Thread.Sleep(1000); Console.WriteLine("Line 2"); _canExecute.Set(); } };
-            var job3 = new Job() { ExecuteJob = () => { Thread.Sleep(2000); Console.WriteLine("Line 3"); _canExecute.Set(); } };
-            var job4 = new Job() { ExecuteJob = () => { Thread.Sleep(1000); Console.WriteLine("Line 4"); _canExecute.Set(); } };
-            var job5 = new Job() { ExecuteJob = () => { Thread.Sleep(1500); Console.WriteLine("Line 5"); _canExecute.Set(); } };
-            var job6 = new Job() { ExecuteJob = () => { Thread.Sleep(3000); Console.WriteLine("Line 6"); _canExecute.Set(); } };
-            var job7 = new Job() { ExecuteJob = () => { Thread.Sleep(2000); Console.WriteLine("Line 7"); _canExecute.Set(); } };
+            var job1 = new Job(1);
+            var job2 = new Job(2);
+            var job3 = new Job(3);
+            var job4 = new Job(4);
+            var job5 = new Job(5);
+            var job6 = new Job(6);
+            var job7 = new Job(7);
+
+            job1.OnJobFinished += (e, s) => _canExecute.Set();
+            job2.OnJobFinished += (e, s) => _canExecute.Set();
+            job3.OnJobFinished += (e, s) => _canExecute.Set();
+            job4.OnJobFinished += (e, s) => _canExecute.Set();
+            job5.OnJobFinished += (e, s) => _canExecute.Set();
+            job6.OnJobFinished += (e, s) => _canExecute.Set();
+            job7.OnJobFinished += (e, s) => _canExecute.Set();
 
             _jobs.Add(job1);
             _jobs.Add(job2);
@@ -44,7 +53,7 @@ namespace ManualResetEventExample
                         }
                         catch (InvalidOperationException) { }
 
-                        job?.ExecuteJob();
+                        job?.Execute();
                     });
                 }
             });
@@ -54,8 +63,34 @@ namespace ManualResetEventExample
         }
     }
 
+    
+
     public class Job
     {
-        public Action ExecuteJob { get; set; }
+        public delegate void JobFinishedHandler(object myObject, JobFinishedArgs myArgs);
+        public event JobFinishedHandler OnJobFinished;
+        public int JobId { get; set; } 
+        public Job(int jobId)
+        {
+            this.JobId = jobId;
+        }
+
+        public void Execute()
+        {
+            Console.WriteLine($"Executing Job {this.JobId}");
+            Thread.Sleep(new Random().Next(1000, 3000));
+            OnJobFinished(this, new JobFinishedArgs("Job Finished!"));
+        }
+    }
+
+    public class JobFinishedArgs : EventArgs
+    {
+        private readonly string _message;
+        public string Message { get { return _message; } }
+
+        public JobFinishedArgs(string message)
+        {
+            this._message = message;
+        }
     }
 }
