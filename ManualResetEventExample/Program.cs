@@ -7,7 +7,7 @@ namespace ManualResetEventExample
 {
     class Program
     {
-        
+
         static void Main(string[] args)
         {
             // Set Manual Reset Event to true cause i want to immediately 
@@ -40,11 +40,12 @@ namespace ManualResetEventExample
             _jobs.Add(job6);
             _jobs.Add(job7);
 
-            Task.Run(() =>
+
+            var thread = new Thread(() =>
             {
                 while (!_jobs.IsCompleted)
                 {
-                    Task.Run(() =>
+                    var innerThread = new Thread(() =>
                     {
                         Job job = null;
                         // Now i wait for the ManualResetEvent to be set to True
@@ -60,22 +61,33 @@ namespace ManualResetEventExample
                         catch (InvalidOperationException) { }
 
                         job?.Execute();
-                    });
+                    })
+                    {
+                        // This is important as it allows the process to exit while this thread is running
+                        IsBackground = true
+                    };
+                    innerThread.Start();
                 }
-            });
+            })
+            {
+                // This is important as it allows the process to exit while this thread is running
+                IsBackground = true
+            };
+            thread.Start();
+           
 
 
             Console.ReadKey();
         }
     }
 
-    
+
 
     public class Job
     {
         public delegate void JobFinishedHandler(object myObject, JobFinishedArgs myArgs);
         public event JobFinishedHandler OnJobFinished;
-        public int JobId { get; set; } 
+        public int JobId { get; set; }
         public Job(int jobId)
         {
             this.JobId = jobId;
